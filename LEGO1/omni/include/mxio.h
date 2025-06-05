@@ -1,6 +1,10 @@
 #ifndef MXIO_H
 #define MXIO_H
 
+#ifndef SDL_IOWhence
+#define SDL_IOWhence int
+#endif
+
 #include "mxtypes.h"
 
 #include "SDL_iostream_compat.h"
@@ -84,7 +88,7 @@ public:
 	MxU16 Close(MxLong);
 	MxLong Read(void*, MxLong);
 	MxLong Write(void*, MxLong);
-	MxLong Seek(MxLong, SEEK_SET);
+	MxLong Seek(MxLong, SDL_IOWhence);
 	MxU16 SetBuffer(char*, MxLong, MxLong);
 	MxU16 Flush(MxU16);
 	MxU16 Advance(MxU16);

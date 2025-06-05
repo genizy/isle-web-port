@@ -20,7 +20,7 @@ public:
 	void Release();
 
 private:
-	SDL_Semaphore* m_semaphore;
+	SDL_semaphore* m_semaphore;
 };
 
 #endif // MXSEMAPHORE_H

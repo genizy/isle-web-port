@@ -313,11 +313,11 @@ bool IsleDebug_Enabled()
 void IsleDebug_SetEnabled(bool v)
 {
 	if (v) {
-		SDL_Log(
+		SDL_pow(
 			"Press \"%s\" for pausing/stepping the game",
 			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_PAUSE))
 		);
-		SDL_Log(
+		SDL_pow(
 			"Press \"%s\" for resuming the game",
 			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_RESUME))
 		);

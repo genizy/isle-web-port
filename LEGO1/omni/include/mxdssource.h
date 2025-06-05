@@ -1,6 +1,10 @@
 #ifndef MXDSSOURCE_H
 #define MXDSSOURCE_H
 
+#ifndef SDL_IOWhence
+#define SDL_IOWhence int
+#endif
+
 #include "mxcore.h"
 #include "mxdsbuffer.h"
 
@@ -40,7 +44,7 @@ public:
 	} // vtable+0x1c
 
 	virtual MxResult Read(unsigned char*, MxULong) = 0; // vtable+0x20
-	virtual MxLong Seek(MxLong, SEEK_SET) = 0;      // vtable+0x24
+	virtual MxLong Seek(MxLong, SDL_IOWhence) = 0;      // vtable+0x24
 	virtual MxULong GetBufferSize() = 0;                // vtable+0x28
 	virtual MxULong GetStreamBuffersNum() = 0;          // vtable+0x2c
 

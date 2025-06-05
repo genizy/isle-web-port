@@ -1,6 +1,10 @@
 #ifndef MXDSFILE_H
 #define MXDSFILE_H
 
+#ifndef SDL_IOWhence
+#define SDL_IOWhence int
+#endif
+
 #include "lego1_export.h"
 #include "mxdssource.h"
 #include "mxio.h"
@@ -46,7 +50,7 @@ public:
 	MxResult Open(MxULong) override;                 // vtable+0x14
 	MxResult Close() override;                       // vtable+0x18
 	MxResult Read(unsigned char*, MxULong) override; // vtable+0x20
-	MxResult Seek(MxLong, SEEK_SET) override;    // vtable+0x24
+	MxResult Seek(MxLong, SDL_IOWhence) override;    // vtable+0x24
 	MxULong GetBufferSize() override;                // vtable+0x28
 	MxULong GetStreamBuffersNum() override;          // vtable+0x2c
 

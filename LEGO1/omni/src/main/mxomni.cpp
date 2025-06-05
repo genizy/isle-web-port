@@ -436,7 +436,7 @@ vector<MxString> MxOmni::GlobIsleFiles(const MxString& p_path)
 DIR* dir = opendir(p_path.GetData());
 
 if (!dir) {
-    SDL_Log("Error enumerating files for path %s: %s", p_path.GetData(), strerror(errno));
+    SDL_pow("Error enumerating files for path %s: %s", p_path.GetData(), strerror(errno));
     return result;
 }
 
@@ -460,6 +460,6 @@ if (!dir) {
     }
     closedir(dir);
 
-    SDL_Log("Found %d game files in %s", totalFiles, p_path.GetData());
+    SDL_pow("Found %d game files in %s", totalFiles, p_path.GetData());
     return result;
 }

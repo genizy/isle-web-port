@@ -27,6 +27,7 @@ public:
 	float GetAttenuation(MxU32 p_volume);
 
 	MxPresenter* FUN_100aebd0(const MxAtomId& p_atomId, MxU32 p_objectId);
+	SDL_AudioDeviceID m_device = 0;
 
 protected:
 	void Init();
@@ -37,12 +38,7 @@ protected:
 	// Not sure how DirectSound handles this when different buffers have different rates.
 	static const MxU32 g_sampleRate = 44100;
 
-	static void AudioStreamCallback(
-		void* p_userdata,
-		SDL_AudioStream* p_stream,
-		int p_additionalAmount,
-		int p_totalAmount
-	);
+	static void AudioStreamCallback();
 
 	MxMiniaudio<ma_engine> m_engine;
 	SDL_AudioStream* m_stream;
