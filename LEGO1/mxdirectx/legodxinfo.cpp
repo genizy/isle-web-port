@@ -231,7 +231,9 @@ bool LegoDeviceEnumerate::SupportsSIMD()
 	return android_getCpuFeatures() & ANDROID_CPU_ARM_FEATURE_NEON;
 #else
 // Prevent unsupported builds
+#if !defined(__EMSCRIPTEN__)
 #error "Unsupported platform: SIMD feature detection not implemented"
+#endif
 #endif
 }
 

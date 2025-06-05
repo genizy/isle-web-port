@@ -5,7 +5,7 @@
 #include "mathutils.h"
 #include "miniwin.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <cstddef>
 
 static SDL_GPUGraphicsPipeline* InitializeGraphicsPipeline(SDL_GPUDevice* device, bool depthWrite)
@@ -93,7 +93,7 @@ static SDL_GPUGraphicsPipeline* InitializeGraphicsPipeline(SDL_GPUDevice* device
 	pipelineCreateInfo.depth_stencil_state.enable_depth_test = true;
 	pipelineCreateInfo.depth_stencil_state.enable_depth_write = depthWrite;
 	pipelineCreateInfo.depth_stencil_state.enable_stencil_test = false;
-	pipelineCreateInfo.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS;
+	pipelineCreateInfo.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_GREATER;
 	pipelineCreateInfo.depth_stencil_state.write_mask = 0xff;
 
 	SDL_GPUGraphicsPipeline* pipeline = SDL_CreateGPUGraphicsPipeline(device, &pipelineCreateInfo);
@@ -277,7 +277,7 @@ HRESULT Direct3DRMSDL3GPURenderer::BeginFrame(const D3DRMMATRIX4D& viewMatrix)
 
 	SDL_GPUDepthStencilTargetInfo depthStencilTargetInfo = {};
 	depthStencilTargetInfo.texture = m_depthTexture;
-	depthStencilTargetInfo.clear_depth = 1.f;
+	depthStencilTargetInfo.clear_depth = 0.f;
 	depthStencilTargetInfo.load_op = SDL_GPU_LOADOP_CLEAR;
 
 	SDL_GPUCommandBuffer* cmdbuf = SDL_AcquireGPUCommandBuffer(m_device);
@@ -434,11 +434,11 @@ HRESULT Direct3DRMSDL3GPURenderer::FinalizeFrame()
 		return DDERR_GENERIC;
 	}
 
-	SDL_DestroySurface(m_renderedImage);
+	SDL_FreeSurface(m_renderedImage);
 	m_renderedImage = SDL_CreateSurfaceFrom(m_width, m_height, SDL_PIXELFORMAT_ABGR8888, downloadedData, m_width * 4);
 
 	SDL_Surface* convertedRender = SDL_ConvertSurface(m_renderedImage, SDL_PIXELFORMAT_RGBA8888);
-	SDL_DestroySurface(m_renderedImage);
+	SDL_FreeSurface(m_renderedImage);
 	SDL_UnmapGPUTransferBuffer(m_device, m_downloadTransferBuffer);
 	m_renderedImage = convertedRender;
 	SDL_BlitSurface(m_renderedImage, nullptr, DDBackBuffer, nullptr);

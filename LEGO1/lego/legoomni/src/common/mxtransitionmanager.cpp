@@ -12,7 +12,7 @@
 #include "mxticklemanager.h"
 #include "mxvideopresenter.h"
 
-#include <SDL3/SDL_timer.h>
+#include <SDL2/SDL_timer.h>
 
 DECOMP_SIZE_ASSERT(MxTransitionManager, 0x900)
 
@@ -193,7 +193,7 @@ void MxTransitionManager::DissolveTransition()
 
 		// ...then shuffle the list (to ensure that we hit each column once)
 		for (i = 0; i < 640; i++) {
-			MxS32 swap = SDL_rand(640);
+			MxS32 swap = (rand() % 640);
 			MxU16 t = m_columnOrder[i];
 			m_columnOrder[i] = m_columnOrder[swap];
 			m_columnOrder[swap] = t;
@@ -201,7 +201,7 @@ void MxTransitionManager::DissolveTransition()
 
 		// For each scanline, pick a random X offset
 		for (i = 0; i < 480; i++) {
-			m_randomShift[i] = SDL_rand(640);
+			m_randomShift[i] = (rand() % 640);
 		}
 	}
 
@@ -278,7 +278,7 @@ void MxTransitionManager::MosaicTransition()
 			}
 
 			for (i = 0; i < 64; i++) {
-				MxS32 swap = SDL_rand(64);
+				MxS32 swap = (rand() % 64);
 				MxU16 t = m_columnOrder[i];
 				m_columnOrder[i] = m_columnOrder[swap];
 				m_columnOrder[swap] = t;
@@ -286,7 +286,7 @@ void MxTransitionManager::MosaicTransition()
 
 			// The same is true here. We only need 48 rows.
 			for (i = 0; i < 48; i++) {
-				m_randomShift[i] = SDL_rand(64);
+				m_randomShift[i] = (rand() % 64);
 			}
 		}
 

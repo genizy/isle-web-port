@@ -8,14 +8,14 @@
 #include "mxpresenter.h"
 #include "mxqueue.h"
 
-#include <SDL3/SDL_joystick.h>
-#include <SDL3/SDL_keyboard.h>
-#include <SDL3/SDL_keycode.h>
-#include <SDL3/SDL_timer.h>
+#include <SDL2/SDL_joystick.h>
+#include <SDL2/SDL_keyboard.h>
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_timer.h>
 #ifdef MINIWIN
 #include "miniwin/windows.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 class LegoCameraController;
@@ -143,6 +143,7 @@ public:
 	MxBool FUN_1005cdf0(LegoEventNotificationParam& p_param);
 	void GetKeyboardState();
 	MxResult GetNavigationKeyStates(MxU32& p_keyFlags);
+	SDL_TimerID m_autoDragTimerID;        // 0x78
 
 	// SYNTHETIC: LEGO1 0x1005b8d0
 	// LegoInputManager::`scalar deleting destructor'
@@ -156,13 +157,12 @@ private:
 	MxS32 m_x;                            // 0x6c
 	MxS32 m_y;                            // 0x70
 	MxS32 m_unk0x74;                      // 0x74
-	SDL_TimerID m_autoDragTimerID;        // 0x78
 	UINT m_autoDragTime;                  // 0x7c
 	MxBool m_unk0x80;                     // 0x80
 	MxBool m_unk0x81;                     // 0x81
 	LegoControlManager* m_controlManager; // 0x84
 	MxBool m_unk0x88;                     // 0x88
-	const bool* m_keyboardState;
+	const Uint8* m_keyboardState;
 	MxBool m_unk0x195; // 0x195
 	SDL_JoystickID* m_joyids;
 	SDL_Joystick* m_joystick;

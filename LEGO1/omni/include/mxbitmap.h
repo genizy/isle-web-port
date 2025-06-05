@@ -4,7 +4,8 @@
 #include "mxcore.h"
 #include "mxtypes.h"
 
-#include <SDL3/SDL_iostream.h>
+#include "SDL_iostream_compat.h"
+#include "SDL_RWStreamBuf.h"
 #ifdef MINIWIN
 #include "miniwin/ddraw.h"
 #else

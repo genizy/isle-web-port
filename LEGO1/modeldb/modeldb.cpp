@@ -1,3 +1,4 @@
+#include "SDL_iostream_compat.h"
 #include "modeldb.h"
 
 DECOMP_SIZE_ASSERT(ModelDbWorld, 0x18)
@@ -19,40 +20,40 @@ MxResult ModelDbModel::Read(SDL_IOStream* p_file)
 {
 	MxU32 len;
 
-	if (SDL_ReadIO(p_file, &len, sizeof(MxU32)) != sizeof(MxU32)) {
+	if (SDL_RWread(p_file, &len, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 		return FAILURE;
 	}
 
 	m_modelName = new char[len];
-	if (SDL_ReadIO(p_file, m_modelName, len) != len) {
+	if (SDL_RWread(p_file, m_modelName, 1, len) != len) {
 		return FAILURE;
 	}
 
-	if (SDL_ReadIO(p_file, &m_modelDataLength, sizeof(MxU32)) != sizeof(MxU32)) {
+	if (SDL_RWread(p_file, &m_modelDataLength, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, &m_modelDataOffset, sizeof(MxU32)) != sizeof(MxU32)) {
+	if (SDL_RWread(p_file, &m_modelDataOffset, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, &len, sizeof(len)) != sizeof(len)) {
+	if (SDL_RWread(p_file, &len, 1, sizeof(len)) != sizeof(len)) {
 		return FAILURE;
 	}
 
 	m_presenterName = new char[len];
-	if (SDL_ReadIO(p_file, m_presenterName, len) != len) {
+	if (SDL_RWread(p_file, m_presenterName, 1, len) != len) {
 		return FAILURE;
 	}
 
-	if (SDL_ReadIO(p_file, m_location, 3 * sizeof(float)) != 3 * sizeof(float)) {
+	if (SDL_RWread(p_file, m_location, 1, 3 * sizeof(float)) != 3 * sizeof(float)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, m_direction, 3 * sizeof(float)) != 3 * sizeof(float)) {
+	if (SDL_RWread(p_file, m_direction, 1, 3 * sizeof(float)) != 3 * sizeof(float)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, m_up, 3 * sizeof(float)) != 3 * sizeof(float)) {
+	if (SDL_RWread(p_file, m_up, 1, 3 * sizeof(float)) != 3 * sizeof(float)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, &m_unk0x34, sizeof(undefined)) != sizeof(undefined)) {
+	if (SDL_RWread(p_file, &m_unk0x34, 1, sizeof(undefined)) != sizeof(undefined)) {
 		return FAILURE;
 	}
 
@@ -64,23 +65,23 @@ MxResult ModelDbPart::Read(SDL_IOStream* p_file)
 {
 	MxU32 len;
 
-	if (SDL_ReadIO(p_file, &len, sizeof(MxU32)) != sizeof(MxU32)) {
+	if (SDL_RWread(p_file, &len, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 		return FAILURE;
 	}
 
 	char* buff = new char[len];
 
-	if (SDL_ReadIO(p_file, buff, len) != len) {
+	if (SDL_RWread(p_file, buff, 1, len) != len) {
 		return FAILURE;
 	}
 
 	m_roiName = buff;
 	delete[] buff;
 
-	if (SDL_ReadIO(p_file, &m_partDataLength, sizeof(undefined4)) != sizeof(undefined4)) {
+	if (SDL_RWread(p_file, &m_partDataLength, 1, sizeof(undefined4)) != sizeof(undefined4)) {
 		return FAILURE;
 	}
-	if (SDL_ReadIO(p_file, &m_partDataOffset, sizeof(undefined4)) != sizeof(undefined4)) {
+	if (SDL_RWread(p_file, &m_partDataOffset, 1, sizeof(undefined4)) != sizeof(undefined4)) {
 		return FAILURE;
 	}
 
@@ -94,7 +95,7 @@ MxResult ReadModelDbWorlds(SDL_IOStream* p_file, ModelDbWorld*& p_worlds, MxS32&
 	p_numWorlds = 0;
 
 	MxS32 numWorlds;
-	if (SDL_ReadIO(p_file, &numWorlds, sizeof(numWorlds)) != sizeof(numWorlds)) {
+	if (SDL_RWread(p_file, &numWorlds, 1, sizeof(numWorlds)) != sizeof(numWorlds)) {
 		return FAILURE;
 	}
 
@@ -102,16 +103,16 @@ MxResult ReadModelDbWorlds(SDL_IOStream* p_file, ModelDbWorld*& p_worlds, MxS32&
 	MxS32 worldNameLen, numParts, i, j;
 
 	for (i = 0; i < numWorlds; i++) {
-		if (SDL_ReadIO(p_file, &worldNameLen, sizeof(MxS32)) != sizeof(MxS32)) {
+		if (SDL_RWread(p_file, &worldNameLen, 1, sizeof(MxS32)) != sizeof(MxS32)) {
 			return FAILURE;
 		}
 
 		worlds[i].m_worldName = new char[worldNameLen];
-		if (SDL_ReadIO(p_file, worlds[i].m_worldName, worldNameLen) != worldNameLen) {
+		if (SDL_RWread(p_file, worlds[i].m_worldName, 1, worldNameLen) != worldNameLen) {
 			return FAILURE;
 		}
 
-		if (SDL_ReadIO(p_file, &numParts, sizeof(MxS32)) != sizeof(MxS32)) {
+		if (SDL_RWread(p_file, &numParts, 1, sizeof(MxS32)) != sizeof(MxS32)) {
 			return FAILURE;
 		}
 
@@ -127,7 +128,7 @@ MxResult ReadModelDbWorlds(SDL_IOStream* p_file, ModelDbWorld*& p_worlds, MxS32&
 			worlds[i].m_partList->Append(part);
 		}
 
-		if (SDL_ReadIO(p_file, &worlds[i].m_numModels, sizeof(MxS32)) != sizeof(MxS32)) {
+		if (SDL_RWread(p_file, &worlds[i].m_numModels, 1, sizeof(MxS32)) != sizeof(MxS32)) {
 			return FAILURE;
 		}
 

@@ -4,7 +4,8 @@
 #include "lego1_export.h"
 #include "legoentitypresenter.h"
 
-#include <SDL3/SDL_iostream.h>
+#include "SDL_iostream_compat.h"
+#include "SDL_RWStreamBuf.h"
 
 class LegoWorld;
 struct ModelDbPart;

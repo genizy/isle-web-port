@@ -4,7 +4,7 @@
 #ifdef MINIWIN
 #include "miniwin/windows.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 extern bool DetectDirectX5();

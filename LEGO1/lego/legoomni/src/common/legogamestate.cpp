@@ -59,8 +59,8 @@
 #include "sndanim_actions.h"
 #include "towtrack.h"
 
-#include <SDL3/SDL_filesystem.h>
-#include <SDL3/SDL_stdinc.h>
+#include <SDL2/SDL_filesystem.h>
+#include <SDL2/SDL_stdinc.h>
 #include <assert.h>
 #include <stdio.h>
 
@@ -606,7 +606,7 @@ MxResult LegoGameState::AddPlayer(Username& p_player)
 
 	if (m_playerCount == 9) {
 		GetFileSavePath(&from, 8);
-		SDL_RemovePath(from.GetData());
+		remove(from.GetData());
 		m_playerCount--;
 	}
 
@@ -614,7 +614,7 @@ MxResult LegoGameState::AddPlayer(Username& p_player)
 		m_players[i] = m_players[i - 1];
 		GetFileSavePath(&from, i - 1);
 		GetFileSavePath(&to, i);
-		SDL_RenamePath(from.GetData(), to.GetData());
+		rename(from.GetData(), to.GetData());
 	}
 
 	m_playerCount++;
@@ -639,18 +639,18 @@ void LegoGameState::SwitchPlayer(MxS16 p_playerId)
 
 		Username selectedName(m_players[p_playerId]);
 
-		SDL_RenamePath(from.GetData(), temp.GetData());
+		rename(from.GetData(), temp.GetData());
 
 		for (MxS16 i = p_playerId; i > 0; i--) {
 			m_players[i] = m_players[i - 1];
 			GetFileSavePath(&from, i - 1);
 			GetFileSavePath(&to, i);
-			SDL_RenamePath(from.GetData(), to.GetData());
+			rename(from.GetData(), to.GetData());
 		}
 
 		m_players[0] = selectedName;
 		GetFileSavePath(&from, 0);
-		SDL_RenamePath(temp.GetData(), from.GetData());
+		rename(temp.GetData(), from.GetData());
 	}
 
 	if (Load(0) != SUCCESS) {

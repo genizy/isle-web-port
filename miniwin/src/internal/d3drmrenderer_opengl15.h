@@ -5,16 +5,10 @@
 #include "ddraw_impl.h"
 
 #include <GL/glew.h>
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 
 DEFINE_GUID(OPENGL15_GUID, 0x682656F3, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03);
-
-struct GLTextureCacheEntry {
-	IDirect3DRMTexture* texture;
-	Uint32 version;
-	GLuint glTextureId;
-};
 
 class OpenGL15Renderer : public Direct3DRMRenderer {
 public:
@@ -39,8 +33,6 @@ public:
 	HRESULT FinalizeFrame() override;
 
 private:
-	void AddTextureDestroyCallback(Uint32 id, IDirect3DRMTexture* texture);
-	std::vector<GLTextureCacheEntry> m_textures;
 	D3DRMMATRIX4D m_viewMatrix;
 	D3DRMMATRIX4D m_projection;
 	SDL_Surface* m_renderedImage;

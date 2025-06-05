@@ -9,7 +9,7 @@
 #ifndef __DSETUP_H__
 #define __DSETUP_H__
 
-#include <windows.h>      // windows stuff
+#include "miniwin/windows.h"      // windows stuff
 
 #ifdef _WIN32
 #define COM_NO_WINDOWS_H

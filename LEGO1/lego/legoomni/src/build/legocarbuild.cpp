@@ -30,8 +30,8 @@
 #include "racecar_actions.h"
 #include "scripts.h"
 
-#include <SDL3/SDL_stdinc.h>
-#include <SDL3/SDL_timer.h>
+#include <SDL2/SDL_stdinc.h>
+#include <SDL2/SDL_timer.h>
 #include <isle.h>
 #include <stdio.h>
 #include <vec.h>
@@ -1502,7 +1502,7 @@ void LegoCarBuild::FUN_10025720(undefined4 p_param)
 		case 1:
 		case 2:
 		case 3:
-			switch (SDL_rand(3)) {
+			switch ((rand() % 3)) {
 			case 0:
 				m_unk0x10a = CopterScript::c_ips004d2_RunAnim;
 				StopActionIn0x344();

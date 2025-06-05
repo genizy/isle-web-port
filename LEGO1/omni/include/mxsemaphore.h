@@ -3,7 +3,7 @@
 
 #include "mxtypes.h"
 
-#include <SDL3/SDL_mutex.h>
+#include <SDL2/SDL_mutex.h>
 
 // VTABLE: LEGO1 0x100dccf0
 // SIZE 0x08

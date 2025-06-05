@@ -11,7 +11,7 @@ DirectDrawSurfaceImpl::DirectDrawSurfaceImpl()
 
 DirectDrawSurfaceImpl::DirectDrawSurfaceImpl(int width, int height, SDL_PixelFormat format)
 {
-	m_surface = SDL_CreateSurface(width, height, format);
+	m_surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 8 format);
 	if (!m_surface) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create surface: %s", SDL_GetError());
 	}
@@ -20,7 +20,7 @@ DirectDrawSurfaceImpl::DirectDrawSurfaceImpl(int width, int height, SDL_PixelFor
 DirectDrawSurfaceImpl::~DirectDrawSurfaceImpl()
 {
 	if (m_surface) {
-		SDL_DestroySurface(m_surface);
+		SDL_FreeSurface(m_surface);
 	}
 	if (m_palette) {
 		m_palette->Release();
@@ -102,7 +102,7 @@ HRESULT DirectDrawSurfaceImpl::Blt(
 	}
 
 	if (blitSource != srcSurface->m_surface) {
-		SDL_DestroySurface(blitSource);
+		SDL_FreeSurface(blitSource);
 	}
 	return DD_OK;
 }
@@ -136,7 +136,7 @@ HRESULT DirectDrawSurfaceImpl::Flip(LPDIRECTDRAWSURFACE lpDDSurfaceTargetOverrid
 	SDL_Rect srcRect{0, 0, DDBackBuffer->w, DDBackBuffer->h};
 	SDL_Surface* copy = SDL_ConvertSurface(DDBackBuffer, windowSurface->format);
 	SDL_BlitSurface(copy, &srcRect, windowSurface, &srcRect);
-	SDL_DestroySurface(copy);
+	SDL_FreeSurface(copy);
 	SDL_UpdateWindowSurface(DDWindow);
 	return DD_OK;
 }

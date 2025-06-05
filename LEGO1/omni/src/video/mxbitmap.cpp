@@ -1,5 +1,6 @@
 #include "mxbitmap.h"
 
+#include "SDL_iostream_compat.h"
 #include "decomp.h"
 #include "mxpalette.h"
 #include "mxutilities.h"
@@ -179,7 +180,7 @@ MxLong MxBitmap::Read(const char* p_filename)
 	MxResult result = FAILURE;
 	SDL_IOStream* handle;
 
-	handle = SDL_IOFromFile(p_filename, "rb");
+	handle = SDL_RWFromFile(p_filename, "rb");
 
 	if (handle == NULL) {
 		goto done;
@@ -193,7 +194,7 @@ MxLong MxBitmap::Read(const char* p_filename)
 
 done:
 	if (handle) {
-		SDL_CloseIO(handle);
+		SDL_RWclose(handle);
 	}
 
 	return result;
@@ -210,7 +211,7 @@ MxResult MxBitmap::LoadFile(SDL_IOStream* p_handle)
 	BITMAPFILEHEADER hdr;
 
 	static_assert(sizeof(BITMAPFILEHEADER) == 14, "Incorrect size");
-	if (!SDL_ReadIO(p_handle, &hdr, 14)) {
+	if (!SDL_RWread(p_handle, &hdr, 1, 14)) {
 		goto done;
 	}
 
@@ -223,7 +224,7 @@ MxResult MxBitmap::LoadFile(SDL_IOStream* p_handle)
 		goto done;
 	}
 
-	if (!SDL_ReadIO(p_handle, m_info, MxBitmapInfoSize())) {
+	if (!SDL_RWread(p_handle, m_info, 1, MxBitmapInfoSize())) {
 		goto done;
 	}
 
@@ -237,7 +238,7 @@ MxResult MxBitmap::LoadFile(SDL_IOStream* p_handle)
 		goto done;
 	}
 
-	if (!SDL_ReadIO(p_handle, m_data, size)) {
+	if (!SDL_RWread(p_handle, m_data, 1, size)) {
 		goto done;
 	}
 

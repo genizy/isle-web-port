@@ -3,7 +3,7 @@
 #include "mathutils.h"
 #include "miniwin/d3drm.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 
 #define NO_TEXTURE_ID 0xffffffff
 

@@ -3,6 +3,7 @@ Release/
 *.ncb
 /.vs
 /.vscode
+/emsdk/
 /.idea
 .env
 .venv

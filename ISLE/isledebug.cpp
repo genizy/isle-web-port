@@ -1,3 +1,4 @@
+#ifdef ISLE_DEBUG
 #include "isledebug.h"
 
 #include "isleapp.h"
@@ -11,8 +12,8 @@
 #include "misc.h"
 #include "mxticklemanager.h"
 
-#include <SDL3/SDL.h>
-#include <backends/imgui_impl_sdl3.h>
+#include <SDL2/SDL.h>
+#include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
 #include <imgui.h>
 
@@ -153,7 +154,6 @@ void IsleDebug_Init()
 			break;
 		}
 		if (!SDL_CreateWindowAndRenderer(
-				"Debug ISLE",
 				640,
 				480,
 				SDL_WINDOW_RESIZABLE,
@@ -167,14 +167,14 @@ void IsleDebug_Init()
 		ImGui::CreateContext();
 		ImGui::StyleColorsDark();
 
-		if (!ImGui_ImplSDL3_InitForSDLRenderer(g_debugWindow, g_debugRenderer)) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "ImGui_ImplSDL3_InitForSDLRenderer failed");
+		if (!ImGui_ImplSDL2_InitForSDLRenderer(g_debugWindow, g_debugRenderer)) {
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "ImGui_ImplSDL2_InitForSDLRenderer failed");
 			g_debugEnabled = false;
 			break;
 		}
 		g_videoPalette =
 			SDL_CreateTexture(g_debugRenderer, SDL_PIXELFORMAT_RGBX32, SDL_TEXTUREACCESS_STREAMING, 16, 16);
-		SDL_SetTextureScaleMode(g_videoPalette, SDL_SCALEMODE_PIXELART);
+		SDL_SetTextureScaleMode(g_videoPalette, SDL_ScaleModeNearest);
 		if (!ImGui_ImplSDLRenderer3_Init(g_debugRenderer)) {
 			g_debugEnabled = false;
 			break;
@@ -197,8 +197,8 @@ bool IsleDebug_Event(SDL_Event* event)
 	if (!g_debugEnabled) {
 		return false;
 	}
-	if (event->type == SDL_EVENT_KEY_DOWN) {
-		if (event->key.scancode == SCANCODE_KEY_PAUSE) {
+	if (event->type == SDL_KEYDOWN) {
+		if (event->key.keysym.scancode == SDL_SCANCODE_PAUSE) {
 			if (!g_debugPaused) {
 				IsleDebug_SetPaused(true);
 			}
@@ -207,7 +207,7 @@ bool IsleDebug_Event(SDL_Event* event)
 			}
 			return true;
 		}
-		if (event->key.scancode == SCANCODE_KEY_RESUME) {
+		if (event->key.keysym.scancode == SCANCODE_KEY_RESUME) {
 			g_debugDoStep = false;
 			if (g_debugPaused) {
 				IsleDebug_SetPaused(false);
@@ -215,10 +215,10 @@ bool IsleDebug_Event(SDL_Event* event)
 			return true;
 		}
 	}
-	if (SDL_GetWindowFromEvent(event) != g_debugWindow) {
+	if (SDL_GetWindowFromID(event->window.windowID) != g_debugWindow) {
 		return false;
 	}
-	ImGui_ImplSDL3_ProcessEvent(event);
+	ImGui_ImplSDL2_ProcessEvent(event);
 	return true;
 }
 
@@ -230,7 +230,7 @@ void IsleDebug_Render()
 	const ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 	ImGui_ImplSDLRenderer3_NewFrame();
-	ImGui_ImplSDL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
 	ImGui::NewFrame();
 	ImGuiIO& io = ImGui::GetIO();
 	{
@@ -293,7 +293,7 @@ void IsleDebug_Render()
 
 	ImGui::Render();
 	SDL_RenderClear(g_debugRenderer);
-	SDL_SetRenderScale(g_debugRenderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
+	SDL_RenderSetScale(g_debugRenderer, io.DisplayFramebufferScale.x, io.DisplayFramebufferScale.y);
 	SDL_SetRenderDrawColor(
 		g_debugRenderer,
 		(Uint8) (clear_color.x * 255),
@@ -315,11 +315,11 @@ void IsleDebug_SetEnabled(bool v)
 	if (v) {
 		SDL_Log(
 			"Press \"%s\" for pausing/stepping the game",
-			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_PAUSE, 0, false))
+			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_PAUSE))
 		);
 		SDL_Log(
 			"Press \"%s\" for resuming the game",
-			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_RESUME, 0, false))
+			SDL_GetKeyName(SDL_GetKeyFromScancode(SCANCODE_KEY_RESUME))
 		);
 	}
 	g_debugEnabled = v;
@@ -353,3 +353,5 @@ bool IsleDebug_StepModeEnabled()
 {
 	return g_debugDoStep;
 }
+
+#endif

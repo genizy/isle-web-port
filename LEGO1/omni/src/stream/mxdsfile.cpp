@@ -3,7 +3,7 @@
 #include "decomp.h"
 #include "mxdebug.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
 
 #define SI_MAJOR_VERSION 2
@@ -43,7 +43,7 @@ MxResult MxDSFile::Open(MxULong p_uStyle)
 		Close();
 	}
 	else {
-		Seek(0, SDL_IO_SEEK_SET);
+		Seek(0, RW_SEEK_SET);
 	}
 
 	return result;
@@ -118,7 +118,7 @@ MxResult MxDSFile::Read(unsigned char* p_buf, MxULong p_nbytes)
 
 // FUNCTION: LEGO1 0x100cc7b0
 // FUNCTION: BETA10 0x1015dfee
-MxResult MxDSFile::Seek(MxLong p_lOffset, SDL_IOWhence p_iOrigin)
+MxResult MxDSFile::Seek(MxLong p_lOffset, SEEK_SET p_iOrigin)
 {
 	m_position = m_io.Seek(p_lOffset, p_iOrigin);
 	if (m_position == -1) {

@@ -9,7 +9,7 @@
 #include "miniwin/windows.h"
 #else
 #include <ddraw.h>
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 // VTABLE: LEGO1 0x100db818

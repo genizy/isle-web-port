@@ -8,7 +8,7 @@
 #ifdef MINIWIN
 #include "miniwin/windows.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 // VTABLE: LEGO1 0x100dbc08

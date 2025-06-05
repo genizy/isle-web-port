@@ -42,7 +42,7 @@ MxU16 MXIOINFO::Open(const char* p_filename, MxULong p_flags)
 
 	MxString path(p_filename);
 	path.MapPathToFilesystem();
-	ASSIGN_M_FILE(SDL_IOFromFile(path.GetData(), "rb"));
+	ASSIGN_M_FILE(SDL_RWFromFile(path.GetData(), "rb"));
 
 	if (M_FILE != NULL) {
 		m_info.dwFlags = p_flags;
@@ -86,7 +86,7 @@ MxU16 MXIOINFO::Close(MxLong p_unused)
 
 	if (RAW_M_FILE) {
 		result = Flush(0);
-		SDL_CloseIO(M_FILE);
+		SDL_RWclose(M_FILE);
 		ASSIGN_M_FILE(0);
 
 		if (m_info.dwFlags & MMIO_ALLOCBUF) {
@@ -137,11 +137,11 @@ MxLong MXIOINFO::Read(void* p_buf, MxLong p_len)
 		}
 	}
 	else if (RAW_M_FILE && p_len > 0) {
-		bytesRead = SDL_ReadIO(M_FILE, p_buf, p_len);
+		bytesRead = SDL_RWread(M_FILE, p_buf, 1, p_len);
 
 		if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR) {
 			bytesRead = 0;
-			m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+			m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 		}
 		else {
 			m_info.lDiskOffset += bytesRead;
@@ -194,7 +194,7 @@ MxLong MXIOINFO::Write(void* p_buf, MxLong p_len)
 
 		if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR) {
 			bytesWritten = 0;
-			m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+			m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 		}
 		else {
 			m_info.lDiskOffset += bytesWritten;
@@ -210,7 +210,7 @@ MxLong MXIOINFO::Write(void* p_buf, MxLong p_len)
 
 // FUNCTION: LEGO1 0x100cca00
 // FUNCTION: BETA10 0x1015e6c4
-MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
+MxLong MXIOINFO::Seek(MxLong p_offset, SEEK_SET p_origin)
 {
 	MxLong result = -1;
 	Sint64 bytesRead;
@@ -224,16 +224,16 @@ MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
 			}
 
 			// With SDL_IO_SEEK_CUR, p_offset is a relative offset.
-			// Get the absolute position instead and use SDL_IO_SEEK_SET.
+			// Get the absolute position instead and use RW_SEEK_SET.
 			p_offset += m_info.lBufOffset + (m_info.pchNext - m_info.pchBuffer);
-			p_origin = SDL_IO_SEEK_SET;
+			p_origin = RW_SEEK_SET;
 		}
 		else if (p_origin == SDL_IO_SEEK_END) {
 			// not possible with buffered I/O
 			return -1;
 		}
 
-		// else p_origin == SDL_IO_SEEK_SET.
+		// else p_origin == RW_SEEK_SET.
 
 		// is p_offset between the start and end of the buffer?
 		// i.e. can we do the seek without reading more from disk?
@@ -244,10 +244,10 @@ MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
 		else {
 			// we have to read another chunk from disk.
 			if (RAW_M_FILE && !Flush(0)) {
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, p_offset, p_origin);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, p_offset, p_origin);
 
 				if (m_info.lDiskOffset == -1) {
-					m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+					m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 				}
 				else {
 
@@ -257,10 +257,10 @@ MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
 					// do we need to seek again?
 					// (i.e. are we already aligned to buffer size?)
 					if (p_offset != m_info.lBufOffset) {
-						m_info.lDiskOffset = SDL_SeekIO(M_FILE, m_info.lBufOffset, SDL_IO_SEEK_SET);
+						m_info.lDiskOffset = SDL_RWseek(M_FILE, m_info.lBufOffset, RW_SEEK_SET);
 
 						if (m_info.lDiskOffset == -1) {
-							m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+							m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 						}
 					}
 
@@ -268,10 +268,10 @@ MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
 						// is the file open for writing only?
 						if ((m_info.dwFlags & MMIO_RWMODE) == 0 || (m_info.dwFlags & MMIO_RWMODE) == MMIO_READWRITE) {
 							// We can read from the file. Fill the buffer.
-							bytesRead = SDL_ReadIO(M_FILE, m_info.pchBuffer, m_info.cchBuffer);
+							bytesRead = SDL_RWread(M_FILE, m_info.pchBuffer, 1, m_info.cchBuffer);
 
 							if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR) {
-								m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+								m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 							}
 							else {
 								m_info.lDiskOffset += bytesRead;
@@ -299,12 +299,12 @@ MxLong MXIOINFO::Seek(MxLong p_offset, SDL_IOWhence p_origin)
 			return m_info.lDiskOffset;
 		}
 
-		m_info.lDiskOffset = SDL_SeekIO(M_FILE, p_offset, p_origin);
+		m_info.lDiskOffset = SDL_RWseek(M_FILE, p_offset, p_origin);
 
 		result = m_info.lDiskOffset;
 
 		if (result == -1) {
-			m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+			m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 		}
 	}
 
@@ -348,20 +348,20 @@ MxU16 MXIOINFO::Flush(MxU16 p_unused)
 				MxLong cchBuffer = m_info.cchBuffer;
 				if (cchBuffer > 0) {
 					if (m_info.lBufOffset != m_info.lDiskOffset) {
-						m_info.lDiskOffset = SDL_SeekIO(M_FILE, m_info.lBufOffset, SDL_IO_SEEK_SET);
+						m_info.lDiskOffset = SDL_RWseek(M_FILE, m_info.lBufOffset, RW_SEEK_SET);
 					}
 
 					// Was the previous seek (if required) successful?
 					if (m_info.lBufOffset != m_info.lDiskOffset) {
 						result = MMIOERR_CANNOTSEEK;
-						m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+						m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 					}
 					else {
 						bytesWritten = SDL_WriteIO(M_FILE, m_info.pchBuffer, cchBuffer);
 
 						if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR || bytesWritten != cchBuffer) {
 							result = MMIOERR_CANNOTWRITE;
-							m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+							m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 						}
 						else {
 							m_info.lDiskOffset += bytesWritten;
@@ -401,19 +401,19 @@ MxU16 MXIOINFO::Advance(MxU16 p_option)
 			((p_option & MMIO_WRITE) || (rwmode == MMIO_READWRITE)) && cch > 0) {
 
 			if (m_info.lBufOffset != m_info.lDiskOffset) {
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, m_info.lBufOffset, SDL_IO_SEEK_SET);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, m_info.lBufOffset, RW_SEEK_SET);
 			}
 
 			if (m_info.lBufOffset != m_info.lDiskOffset) {
 				result = MMIOERR_CANNOTSEEK;
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 			}
 			else {
 				bytesCounter = SDL_WriteIO(M_FILE, m_info.pchBuffer, cch);
 
 				if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR || bytesCounter != cch) {
 					result = MMIOERR_CANNOTWRITE;
-					m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+					m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 				}
 				else {
 					m_info.lDiskOffset += bytesCounter;
@@ -427,20 +427,20 @@ MxU16 MXIOINFO::Advance(MxU16 p_option)
 		m_info.lBufOffset += cch;
 		if ((!rwmode || rwmode == MMIO_READWRITE) && cch > 0) {
 			if (m_info.lBufOffset != m_info.lDiskOffset) {
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, m_info.lBufOffset, SDL_IO_SEEK_SET);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, m_info.lBufOffset, RW_SEEK_SET);
 			}
 
 			// if previous seek failed
 			if (m_info.lBufOffset != m_info.lDiskOffset) {
 				result = MMIOERR_CANNOTSEEK;
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 			}
 			else {
-				bytesCounter = SDL_ReadIO(M_FILE, m_info.pchBuffer, cch);
+				bytesCounter = SDL_RWread(M_FILE, m_info.pchBuffer, 1, cch);
 
 				if (SDL_GetIOStatus(M_FILE) == SDL_IO_STATUS_ERROR) {
 					result = MMIOERR_CANNOTREAD;
-					m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+					m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 				}
 				else {
 					m_info.lDiskOffset += bytesCounter;
@@ -587,11 +587,11 @@ MxU16 MXIOINFO::Ascend(ISLE_MMCKINFO* p_chunkInfo, MxU16 p_ascend)
 				m_info.dwFlags |= MMIO_DIRTY;
 			}
 			else {
-				m_info.lDiskOffset = SDL_SeekIO(M_FILE, ofs, SDL_IO_SEEK_SET);
+				m_info.lDiskOffset = SDL_RWseek(M_FILE, ofs, RW_SEEK_SET);
 
 				if (m_info.lDiskOffset == ofs) {
 					if (SDL_WriteIO(M_FILE, (char*) &size, 4) != 4) {
-						m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+						m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 						result = MMIOERR_CANNOTWRITE;
 					}
 					else {
@@ -599,7 +599,7 @@ MxU16 MXIOINFO::Ascend(ISLE_MMCKINFO* p_chunkInfo, MxU16 p_ascend)
 					}
 				}
 				else {
-					m_info.lDiskOffset = SDL_SeekIO(M_FILE, 0, SDL_IO_SEEK_CUR);
+					m_info.lDiskOffset = SDL_RWseek(M_FILE, 0, SDL_IO_SEEK_CUR);
 					result = MMIOERR_CANNOTSEEK;
 				}
 			}
@@ -608,7 +608,7 @@ MxU16 MXIOINFO::Ascend(ISLE_MMCKINFO* p_chunkInfo, MxU16 p_ascend)
 
 	// Seek past the end of the chunk (plus optional pad byte if size is odd)
 	if (result == 0 &&
-		Seek((p_chunkInfo->cksize & 1) + p_chunkInfo->cksize + p_chunkInfo->dwDataOffset, SDL_IO_SEEK_SET) == -1) {
+		Seek((p_chunkInfo->cksize & 1) + p_chunkInfo->cksize + p_chunkInfo->dwDataOffset, RW_SEEK_SET) == -1) {
 		result = MMIOERR_CANNOTSEEK;
 	}
 

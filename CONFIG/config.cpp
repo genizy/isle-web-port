@@ -16,7 +16,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QMessageBox>
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <iniparser.h>
 
 DECOMP_SIZE_ASSERT(CWinApp, 0xc4)

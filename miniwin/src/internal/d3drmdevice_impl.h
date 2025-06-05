@@ -4,7 +4,7 @@
 #include "d3drmrenderer.h"
 #include "miniwin/d3drm.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 
 struct Direct3DRMDevice2Impl : public Direct3DRMObjectBaseImpl<IDirect3DRMDevice2> {
 	Direct3DRMDevice2Impl(DWORD width, DWORD height, Direct3DRMRenderer* renderer);

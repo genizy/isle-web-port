@@ -16,9 +16,14 @@
 #include "mxtimer.h"
 #include "mxvariabletable.h"
 #include "mxvideomanager.h"
+#include <dirent.h>
 
-#include <SDL3/SDL_filesystem.h>
-#include <SDL3/SDL_log.h>
+#include <SDL2/SDL_filesystem.h>
+#include <SDL2/SDL_log.h>
+#include <SDL.h>
+#include <vector>
+#include <string>
+#include <cstring>
 
 // GLOBAL: LEGO1 0x101015b8
 MxString g_hdPath = "";
@@ -426,23 +431,35 @@ void MxOmni::Resume()
 
 vector<MxString> MxOmni::GlobIsleFiles(const MxString& p_path)
 {
-	int count;
-	char** files = SDL_GlobDirectory(p_path.GetData(), NULL, 0, &count);
-	vector<MxString> result;
+    vector<MxString> result;
 
-	if (files == NULL) {
-		SDL_Log("Error enumerating files for path %s (%s)", p_path.GetData(), SDL_GetError());
-		return result;
-	}
+DIR* dir = opendir(p_path.GetData());
 
-	for (int i = 0; i < count; i++) {
-		if (!SDL_strncasecmp(files[i], "lego", 4)) {
-			result.emplace_back(files[i]);
-		}
-	}
+if (!dir) {
+    SDL_Log("Error enumerating files for path %s: %s", p_path.GetData(), strerror(errno));
+    return result;
+}
 
-	SDL_Log("Found %d game files in %s", count, p_path.GetData());
+// later...
 
-	SDL_free(files);
-	return result;
+
+    struct dirent* entry;
+    int totalFiles = 0;
+
+    while ((entry = readdir(dir)) != NULL) {
+        // Skip "." and ".."
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        totalFiles++;
+
+        // Case-insensitive check if filename starts with "lego"
+        if (SDL_strncasecmp(entry->d_name, "lego", 4) == 0) {
+            result.emplace_back(entry->d_name);
+        }
+    }
+    closedir(dir);
+
+    SDL_Log("Found %d game files in %s", totalFiles, p_path.GetData());
+    return result;
 }

@@ -13,7 +13,7 @@
 #if (! defined WIN32) && (! defined WIN95)
 #include "subwtype.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 #include <float.h>

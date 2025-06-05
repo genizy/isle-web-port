@@ -1,4 +1,4 @@
-#include <windows.h>
+#include "miniwin/windows.h"
 
 1 ICON "lego.ico"
 

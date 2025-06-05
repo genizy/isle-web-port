@@ -9,7 +9,7 @@
 #include "miniwin.h"
 #include "miniwin/d3d.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <assert.h>
 #include <cstdint>
 #include <cstdlib>

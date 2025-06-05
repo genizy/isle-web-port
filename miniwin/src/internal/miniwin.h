@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 
 #define LOG_CATEGORY_MINIWIN (SDL_LOG_CATEGORY_CUSTOM)
 

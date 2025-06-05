@@ -144,24 +144,23 @@ MxResult LegoInputManager::GetNavigationKeyStates(MxU32& p_keyFlags)
 // FUNCTION: LEGO1 0x1005c240
 MxResult LegoInputManager::GetJoystick()
 {
-	if (m_joystick != NULL && SDL_JoystickConnected(m_joystick) == TRUE) {
+	if (m_joystick != NULL && SDL_JoystickGetAttached(m_joystick) == TRUE) {
 		return SUCCESS;
 	}
 
-	MxS32 numJoysticks = 0;
-	m_joyids = SDL_GetJoysticks(&numJoysticks);
+	int numJoysticks = SDL_NumJoysticks(); 
 
 	if (m_useJoystick != FALSE && numJoysticks != 0) {
 		MxS32 joyid = m_joystickIndex;
 		if (joyid >= 0) {
-			m_joystick = SDL_OpenJoystick(m_joyids[joyid]);
+			m_joystick = SDL_JoystickOpen(joyid);
 			if (m_joystick != NULL) {
 				return SUCCESS;
 			}
 		}
 
 		for (joyid = 0; joyid < numJoysticks; joyid++) {
-			m_joystick = SDL_OpenJoystick(m_joyids[joyid]);
+			m_joystick = SDL_JoystickOpen(joyid);
 			if (m_joystick != NULL) {
 				return SUCCESS;
 			}
@@ -178,16 +177,16 @@ MxResult LegoInputManager::GetJoystickState(MxU32* p_joystickX, MxU32* p_joystic
 		if (GetJoystick() == -1) {
 			if (m_joystick != NULL) {
 				// GetJoystick() failed but handle to joystick is still open, close it
-				SDL_CloseJoystick(m_joystick);
+				SDL_JoystickClose(m_joystick);
 				m_joystick = NULL;
 			}
 
 			return FAILURE;
 		}
 
-		MxS16 xPos = SDL_GetJoystickAxis(m_joystick, 0);
-		MxS16 yPos = SDL_GetJoystickAxis(m_joystick, 1);
-		MxU8 hatPos = SDL_GetJoystickHat(m_joystick, 0);
+		MxS16 xPos = SDL_JoystickGetAxis(m_joystick, 0);
+		MxS16 yPos = SDL_JoystickGetAxis(m_joystick, 1);
+		MxU8 hatPos = SDL_JoystickGetHat(m_joystick, 0);
 
 		// normalize values acquired from joystick axes
 		*p_joystickX = ((xPos + 32768) * 100) / 65535;
@@ -507,16 +506,20 @@ MxBool LegoInputManager::FUN_1005cdf0(LegoEventNotificationParam& p_param)
 	return result;
 }
 
-static Uint32 SDLCALL LegoInputManagerTimerCallback(void* userdata, SDL_TimerID timerID, Uint32 interval)
+static Uint32 SDLCALL LegoInputManagerTimerCallback(Uint32 interval, void* userdata)
 {
-	LegoInputManager* inputManager = (LegoInputManager*) userdata;
+	LegoInputManager* inputManager = static_cast<LegoInputManager*>(userdata);
 	SDL_Event event;
 	event.type = g_legoSdlEvents.m_windowsMessage;
 	event.user.code = WM_TIMER;
-	event.user.data1 = (void*) (uintptr_t) timerID;
-	event.user.data2 = NULL;
-	return interval;
+	event.user.data1 = reinterpret_cast<void*>(static_cast<uintptr_t>(inputManager->m_autoDragTimerID));
+	event.user.data2 = nullptr;
+
+	SDL_PushEvent(&event); 
+
+	return interval; // return 0 to cancel the timer
 }
+
 
 // FUNCTION: LEGO1 0x1005cfb0
 // FUNCTION: BETA10 0x10089fc5

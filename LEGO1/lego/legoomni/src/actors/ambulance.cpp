@@ -23,7 +23,7 @@
 #include "mxvariabletable.h"
 #include "scripts.h"
 
-#include <SDL3/SDL_stdinc.h>
+#include <SDL2/SDL_stdinc.h>
 #include <stdio.h>
 
 DECOMP_SIZE_ASSERT(Ambulance, 0x184)
@@ -477,7 +477,7 @@ void Ambulance::ActivateSceneActions()
 	else if (m_unk0x16c != 0 && m_unk0x16e != 0) {
 		IsleScript::Script objectId;
 
-		switch (SDL_rand(2)) {
+		switch ((rand() % 2)) {
 		case 0:
 			objectId = IsleScript::c_ham076cl_PlayWav;
 			break;
@@ -495,7 +495,7 @@ void Ambulance::ActivateSceneActions()
 	else {
 		IsleScript::Script objectId;
 
-		switch (SDL_rand(2)) {
+		switch ((rand() % 2)) {
 		case 0:
 			objectId = IsleScript::c_ham075cl_PlayWav;
 			break;
@@ -522,7 +522,7 @@ MxResult Ambulance::Tickle()
 	else if (m_lastAction == IsleScript::c_noneIsle) {
 		IsleScript::Script objectId;
 
-		switch (1 + SDL_rand(12)) {
+		switch (1 + (rand() % 12)) {
 		case 1:
 			objectId = IsleScript::c_ham034ra_PlayWav;
 			break;

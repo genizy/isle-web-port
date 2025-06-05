@@ -5,7 +5,8 @@
 #include "mxgeometry/mxgeometry3d.h"
 #include "mxstring.h"
 
-#include <SDL3/SDL_iostream.h>
+#include "SDL_iostream_compat.h"
+#include "SDL_RWStreamBuf.h"
 #include <assert.h>
 
 // VTABLE: LEGO1 0x100d7d80

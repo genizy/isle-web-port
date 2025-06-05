@@ -4,7 +4,7 @@
 #include "mathutils.h"
 #include "miniwin.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -375,7 +375,7 @@ void Direct3DRMSoftwareRenderer::AddTextureDestroyCallback(Uint32 id, IDirect3DR
 			auto& cacheEntry = ctx->renderer->m_textures[ctx->textureId];
 			if (cacheEntry.cached) {
 				SDL_UnlockSurface(cacheEntry.cached);
-				SDL_DestroySurface(cacheEntry.cached);
+				SDL_FreeSurface(cacheEntry.cached);
 				cacheEntry.cached = nullptr;
 				cacheEntry.texture = nullptr;
 			}
@@ -396,7 +396,7 @@ Uint32 Direct3DRMSoftwareRenderer::GetTextureId(IDirect3DRMTexture* iTexture)
 		if (texRef.texture == texture) {
 			if (texRef.version != texture->m_version) {
 				// Update animated textures
-				SDL_DestroySurface(texRef.cached);
+				SDL_FreeSurface(texRef.cached);
 				texRef.cached = SDL_ConvertSurface(surface->m_surface, DDBackBuffer->format);
 				SDL_LockSurface(texRef.cached);
 				texRef.version = texture->m_version;

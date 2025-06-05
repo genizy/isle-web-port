@@ -32,12 +32,16 @@
 #include "viewmanager/viewmanager.h"
 
 #define SDL_MAIN_USE_CALLBACKS
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#include "SDL_properties.h"
+#include "SDL_compat.h"
+#include "SDL_iostream_compat.h"
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_main.h>
 #include <errno.h>
 #include <iniparser.h>
 #include <stdlib.h>
 #include <time.h>
+#include <emscripten.h>
 
 DECOMP_SIZE_ASSERT(IsleApp, 0x8c)
 
@@ -74,7 +78,10 @@ MxS32 g_reqEnableRMDevice = FALSE;
 // STRING: ISLE 0x4101dc
 #define WINDOW_TITLE "LEGO®"
 
-SDL_Window* window;
+SDL_Window* window = nullptr;
+SDL_Renderer* renderer = nullptr;
+
+bool running = true;
 
 // FUNCTION: ISLE 0x401000
 IsleApp::IsleApp()
@@ -352,37 +359,37 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 	// WM_TIMER - use SDL_Timer functionality instead
 
 	switch (event->type) {
-	case SDL_EVENT_WINDOW_FOCUS_GAINED:
+	case SDL_WINDOWEVENT_FOCUS_GAINED:
 		if (!IsleDebug_Enabled()) {
 			g_isle->SetWindowActive(TRUE);
 			Lego()->Resume();
 		}
 		break;
-	case SDL_EVENT_WINDOW_FOCUS_LOST:
+	case SDL_WINDOWEVENT_FOCUS_LOST:
 		if (!IsleDebug_Enabled()) {
 			g_isle->SetWindowActive(FALSE);
 			Lego()->Pause();
 		}
 		break;
-	case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+	case SDL_WINDOWEVENT_CLOSE:
 		if (!g_closed) {
 			delete g_isle;
 			g_isle = NULL;
 			g_closed = TRUE;
 		}
 		break;
-	case SDL_EVENT_KEY_DOWN: {
+	case SDL_KEYDOWN: {
 		if (event->key.repeat) {
 			break;
 		}
 
-		SDL_Keycode keyCode = event->key.key;
+		SDL_Keycode keyCode = event->key.keysym.sym;
 		if (InputManager()) {
 			InputManager()->QueueEvent(c_notificationKeyPress, keyCode, 0, 0, keyCode);
 		}
 		break;
 	}
-	case SDL_EVENT_MOUSE_MOTION:
+	case SDL_MOUSEMOTION:
 		g_mousemoved = TRUE;
 
 		if (InputManager()) {
@@ -399,7 +406,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 			VideoManager()->MoveCursor(Min((MxS32) event->motion.x, 639), Min((MxS32) event->motion.y, 479));
 		}
 		break;
-	case SDL_EVENT_MOUSE_BUTTON_DOWN:
+	case SDL_MOUSEBUTTONDOWN:
 		g_mousedown = TRUE;
 
 		if (InputManager()) {
@@ -412,7 +419,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 			);
 		}
 		break;
-	case SDL_EVENT_MOUSE_BUTTON_UP:
+	case SDL_MOUSEBUTTONUP:
 		g_mousedown = FALSE;
 
 		if (InputManager()) {
@@ -425,7 +432,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 			);
 		}
 		break;
-	case SDL_EVENT_QUIT:
+	case SDL_QUIT:
 		return SDL_APP_SUCCESS;
 		break;
 	}
@@ -458,7 +465,7 @@ void SDL_AppQuit(void* appstate, SDL_AppResult result)
 	SDL_Quit();
 }
 
-MxU8 IsleApp::MapMouseButtonFlagsToModifier(SDL_MouseButtonFlags p_flags)
+MxU8 IsleApp::MapMouseButtonFlagsToModifier(Uint32 p_flags)
 {
 	// [library:window]
 	// Map button states to Windows button states (LegoEventNotificationParam)
@@ -478,106 +485,126 @@ MxU8 IsleApp::MapMouseButtonFlagsToModifier(SDL_MouseButtonFlags p_flags)
 // FUNCTION: ISLE 0x4023e0
 MxResult IsleApp::SetupWindow()
 {
-	if (!LoadConfig()) {
-		return FAILURE;
-	}
+    if (!LoadConfig()) {
+        return FAILURE;
+    }
 
-	SetupVideoFlags(
-		m_fullScreen,
-		m_flipSurfaces,
-		m_backBuffersInVram,
-		m_using8bit,
-		m_using16bit,
-		m_hasLightSupport,
-		FALSE,
-		m_wideViewAngle,
-		m_deviceId
-	);
+    SetupVideoFlags(
+        m_fullScreen,
+        m_flipSurfaces,
+        m_backBuffersInVram,
+        m_using8bit,
+        m_using16bit,
+        m_hasLightSupport,
+        FALSE,
+        m_wideViewAngle,
+        m_deviceId
+    );
 
-	MxOmni::SetSound3D(m_use3dSound);
+    MxOmni::SetSound3D(m_use3dSound);
 
-	srand(time(NULL));
+    srand(time(NULL));
 
-	// [library:window] Use original game cursors in the resources instead?
-	m_cursorCurrent = m_cursorArrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-	m_cursorBusy = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
-	m_cursorNo = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NOT_ALLOWED);
-	SDL_SetCursor(m_cursorCurrent);
+    // Setup cursors
+    m_cursorCurrent = m_cursorArrow = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+    m_cursorBusy = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_WAIT);
+    m_cursorNo = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
+    SDL_SetCursor(m_cursorCurrent);
 
-	SDL_PropertiesID props = SDL_CreateProperties();
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, g_targetWidth);
-	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, g_targetHeight);
-	SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN, m_fullScreen);
-	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, WINDOW_TITLE);
+    // SDL2 window creation
+    Uint32 windowFlags = SDL_WINDOW_SHOWN;
+    if (m_fullScreen) {
+        windowFlags |= SDL_WINDOW_FULLSCREEN;
+    }
 
-	window = SDL_CreateWindowWithProperties(props);
+    window = SDL_CreateWindow(
+        WINDOW_TITLE,
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        g_targetWidth,
+        g_targetHeight,
+        windowFlags
+    );
+
+    if (!window) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to create SDL window: %s", SDL_GetError());
+        return FAILURE;
+    }
+
 #ifdef MINIWIN
-	m_windowHandle = reinterpret_cast<HWND>(window);
+    m_windowHandle = reinterpret_cast<HWND>(window);
 #else
-	m_windowHandle =
-		(HWND) SDL_GetPointerProperty(SDL_GetWindowProperties(window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+    // For SDL2, getting native window handle is platform-dependent.
+    // You can retrieve it using SDL_GetWindowWMInfo (if needed), or set to nullptr for now.
+    m_windowHandle = nullptr;
 #endif
 
-	SDL_DestroyProperties(props);
+    if (!m_windowHandle) {
+        // For SDL2, often you don't need native handle or it's nullptr by default.
+        // You can skip this failure return or remove the check entirely if you don't rely on it.
+        // Otherwise, just comment this out:
+        // return FAILURE;
+    }
 
-	if (!m_windowHandle) {
-		return FAILURE;
+    SDL_RWops* icon_stream = SDL_RWFromMem(isle_bmp, isle_bmp_len);
+
+    if (icon_stream) {
+        SDL_Surface* icon = SDL_LoadBMP_RW(icon_stream, 1);
+        if (icon) {
+            SDL_SetWindowIcon(window, icon);
+            SDL_FreeSurface(icon);
+        }
+        else {
+            SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load icon: %s", SDL_GetError());
+        }
+    }
+    else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open SDL_RWops for icon: %s", SDL_GetError());
+    }
+
+    if (!SetupLegoOmni()) {
+        return FAILURE;
+    }
+
+    GameState()->SetSavePath(m_savePath);
+    GameState()->SerializePlayersInfo(LegoStorage::c_read);
+    GameState()->SerializeScoreHistory(LegoStorage::c_read);
+
+    MxS32 iVar10;
+    switch (m_islandQuality) {
+        case 0:
+            iVar10 = 1;
+            break;
+        case 1:
+            iVar10 = 2;
+            break;
+        default:
+            iVar10 = 100;
+            break;
+    }
+
+    MxS32 uVar1 = (m_islandTexture == 0);
+    LegoModelPresenter::configureLegoModelPresenter(uVar1);
+    LegoPartPresenter::configureLegoPartPresenter(uVar1, iVar10);
+    LegoWorldPresenter::configureLegoWorldPresenter(m_islandQuality);
+    LegoBuildingManager::configureLegoBuildingManager(m_islandQuality);
+    LegoROI::configureLegoROI(iVar10);
+    LegoAnimationManager::configureLegoAnimationManager(m_islandQuality);
+
+    if (LegoOmni::GetInstance()) {
+        if (LegoOmni::GetInstance()->GetInputManager()) {
+            LegoOmni::GetInstance()->GetInputManager()->SetUseJoystick(m_useJoystick);
+            LegoOmni::GetInstance()->GetInputManager()->SetJoystickIndex(m_joystickIndex);
+        }
+    }
+
+    IsleDebug_Init();
+
+	if (!window) {
+    	SDL_Log("Failed to create SDL window: %s", SDL_GetError());
+    	return FAILURE;
 	}
-
-	SDL_IOStream* icon_stream = SDL_IOFromMem(isle_bmp, isle_bmp_len);
-
-	if (icon_stream) {
-		SDL_Surface* icon = SDL_LoadBMP_IO(icon_stream, true);
-
-		if (icon) {
-			SDL_SetWindowIcon(window, icon);
-			SDL_DestroySurface(icon);
-		}
-		else {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to load icon: %s", SDL_GetError());
-		}
-	}
-	else {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to open SDL_IOStream for icon: %s", SDL_GetError());
-	}
-
-	if (!SetupLegoOmni()) {
-		return FAILURE;
-	}
-
-	GameState()->SetSavePath(m_savePath);
-	GameState()->SerializePlayersInfo(LegoStorage::c_read);
-	GameState()->SerializeScoreHistory(LegoStorage::c_read);
-
-	MxS32 iVar10;
-	switch (m_islandQuality) {
-	case 0:
-		iVar10 = 1;
-		break;
-	case 1:
-		iVar10 = 2;
-		break;
-	default:
-		iVar10 = 100;
-	}
-
-	MxS32 uVar1 = (m_islandTexture == 0);
-	LegoModelPresenter::configureLegoModelPresenter(uVar1);
-	LegoPartPresenter::configureLegoPartPresenter(uVar1, iVar10);
-	LegoWorldPresenter::configureLegoWorldPresenter(m_islandQuality);
-	LegoBuildingManager::configureLegoBuildingManager(m_islandQuality);
-	LegoROI::configureLegoROI(iVar10);
-	LegoAnimationManager::configureLegoAnimationManager(m_islandQuality);
-	if (LegoOmni::GetInstance()) {
-		if (LegoOmni::GetInstance()->GetInputManager()) {
-			LegoOmni::GetInstance()->GetInputManager()->SetUseJoystick(m_useJoystick);
-			LegoOmni::GetInstance()->GetInputManager()->SetJoystickIndex(m_joystickIndex);
-		}
-	}
-
-	IsleDebug_Init();
-
-	return SUCCESS;
+    return SUCCESS;
 }
 
 // FUNCTION: ISLE 0x4028d0
@@ -835,10 +862,10 @@ void IsleApp::SetupCursor(Cursor p_cursor)
 
 	if (m_cursorCurrent != NULL) {
 		SDL_SetCursor(m_cursorCurrent);
-		SDL_ShowCursor();
+		SDL_ShowCursor(SDL_ShowCursor(SDL_QUERY) >= 0 ? SDL_DISABLE : SDL_ENABLE);
 	}
 	else {
-		SDL_HideCursor();
+		SDL_ShowCursor(SDL_DISABLE);
 	}
 }
 
@@ -866,4 +893,29 @@ MxResult IsleApp::ParseArguments(int argc, char** argv)
 		}
 	}
 	return SUCCESS;
+}
+
+int main(int argc, char** argv)
+{
+    void* appstate = nullptr;
+
+    if (SDL_AppInit(&appstate, argc, argv) != SDL_APP_CONTINUE) {
+        return 1;
+    }
+
+    emscripten_set_main_loop([] {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            if (SDL_AppEvent(g_isle ? g_isle->GetWindowHandle() : nullptr, &event) == SDL_APP_SUCCESS) {
+                emscripten_cancel_main_loop();
+                return;
+            }
+        }
+
+        if (SDL_AppIterate(g_isle ? g_isle->GetWindowHandle() : nullptr) != SDL_APP_CONTINUE) {
+            emscripten_cancel_main_loop();
+        }
+    }, 0, 1);
+
+    return 0;
 }

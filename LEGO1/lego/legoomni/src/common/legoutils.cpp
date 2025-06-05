@@ -30,9 +30,9 @@
 #include "realtime/realtime.h"
 #include "scripts.h"
 
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_process.h>
-#include <SDL3/SDL_stdinc.h>
+#include <SDL2/SDL_events.h>
+//#include <SDL2/SDL_process.h>
+#include <SDL2/SDL_stdinc.h>
 #include <stdio.h>
 #include <string.h>
 #include <vec.h>
@@ -322,7 +322,7 @@ void InvokeAction(Extra::ActionType p_actionId, const MxAtomId& p_pAtom, MxS32 p
 		break;
 	case Extra::ActionType::e_run: {
 		const char* args[] = {"/lego/sources/main/main.exe", "/script", p_pAtom.GetInternal(), NULL};
-		SDL_Process* process = SDL_CreateProcess(args, false);
+		//SDL_Process* process = SDL_CreateProcess(args, false);
 	} break;
 	case Extra::ActionType::e_enable:
 		assert(p_streamId != DS_NOT_A_STREAM);
@@ -754,7 +754,10 @@ void WriteDefaultTexture(LegoStorage* p_storage, const char* p_name)
 						paletteEntries[i].SetBlue(entries[i].peBlue);
 					}
 
-					image->SetPalette(SDL_CreatePalette(i));
+					SDL_Palette* palette = SDL_AllocPalette(i);
+                    if (palette) {
+                        image->SetPalette(palette);
+                    }
 
 					if (i > 0) {
 						for (MxS32 j = 0; j < i; j++) {

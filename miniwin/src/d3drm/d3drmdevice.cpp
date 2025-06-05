@@ -7,7 +7,7 @@
 #include "miniwin.h"
 #include "miniwin/d3drm.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 
 Direct3DRMDevice2Impl::Direct3DRMDevice2Impl(DWORD width, DWORD height, Direct3DRMRenderer* renderer)
 	: m_width(width), m_height(height), m_renderer(renderer), m_viewports(new Direct3DRMViewportArrayImpl)

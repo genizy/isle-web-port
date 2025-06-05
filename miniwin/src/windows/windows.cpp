@@ -1,7 +1,7 @@
 #include "miniwin.h"
 #include "miniwin/ddraw.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #include <vector>
 
 ULONG IUnknown::AddRef()

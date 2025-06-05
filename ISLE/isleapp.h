@@ -6,11 +6,11 @@
 #include "mxtypes.h"
 #include "mxvideoparam.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 #ifdef MINIWIN
 #include "miniwin/windows.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 // SIZE 0x8c
@@ -39,7 +39,7 @@ public:
 	bool Tick();
 	void SetupCursor(Cursor p_cursor);
 
-	static MxU8 MapMouseButtonFlagsToModifier(SDL_MouseButtonFlags p_flags);
+	static MxU8 MapMouseButtonFlagsToModifier(Uint32 p_flags);
 
 	HWND GetWindowHandle() { return m_windowHandle; }
 	MxLong GetFrameDelta() { return m_frameDelta; }

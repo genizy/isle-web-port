@@ -175,18 +175,18 @@ MxLong RegistrationBook::HandleKeyPress(SDL_Keycode p_key)
 	// keycode is case-insensitive
 	SDL_Keycode key = p_key;
 
-	if ((key < SDLK_A || key > SDLK_Z) && key != SDLK_BACKSPACE) {
+	if ((key < SDLK_a || key > SDLK_z) && key != SDLK_BACKSPACE) {
 		if (key == SDLK_SPACE) {
 			DeleteObjects(&m_atomId, RegbookScript::c_iic006in_RunAnim, RegbookScript::c_iic008in_PlayWav);
 			BackgroundAudioManager()->RaiseVolume();
 		}
 	}
 	else if (key != SDLK_BACKSPACE && m_unk0x280.m_cursorPos < 7) {
-		m_name[0][m_unk0x280.m_cursorPos] = m_alphabet[key - SDLK_A]->Clone();
+		m_name[0][m_unk0x280.m_cursorPos] = m_alphabet[key - SDLK_a]->Clone();
 
 		if (m_name[0][m_unk0x280.m_cursorPos] != NULL) {
-			m_alphabet[key - SDLK_A]->GetAction()->SetUnknown24(
-				m_alphabet[key - SDLK_A]->GetAction()->GetUnknown24() + 1
+			m_alphabet[key - SDLK_a]->GetAction()->SetUnknown24(
+				m_alphabet[key - SDLK_a]->GetAction()->GetUnknown24() + 1
 			);
 			m_name[0][m_unk0x280.m_cursorPos]->Enable(TRUE);
 			m_name[0][m_unk0x280.m_cursorPos]->SetTickleState(MxPresenter::e_repeating);
@@ -196,7 +196,7 @@ MxLong RegistrationBook::HandleKeyPress(SDL_Keycode p_key)
 				m_checkmark[0]->Enable(TRUE);
 			}
 
-			m_unk0x280.m_letters[m_unk0x280.m_cursorPos] = key - SDLK_A;
+			m_unk0x280.m_letters[m_unk0x280.m_cursorPos] = key - SDLK_a;
 			m_unk0x280.m_cursorPos++;
 		}
 	}
@@ -248,7 +248,7 @@ MxLong RegistrationBook::HandleControl(LegoControlManagerNotificationParam& p_pa
 					return 1;
 				}
 
-				HandleKeyPress(buttonId < 27 ? SDLK_A + buttonId - 1 : SDLK_BACKSPACE);
+				HandleKeyPress(buttonId < 27 ? SDLK_a + buttonId - 1 : SDLK_BACKSPACE);
 			}
 		}
 		else {

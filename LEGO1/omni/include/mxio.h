@@ -3,7 +3,8 @@
 
 #include "mxtypes.h"
 
-#include <SDL3/SDL_iostream.h>
+#include "SDL_iostream_compat.h"
+#include "SDL_RWStreamBuf.h"
 
 // [library:filesystem]
 // We define the bare minimum constants and structures to be compatible with the code in mxio.cpp
@@ -83,7 +84,7 @@ public:
 	MxU16 Close(MxLong);
 	MxLong Read(void*, MxLong);
 	MxLong Write(void*, MxLong);
-	MxLong Seek(MxLong, SDL_IOWhence);
+	MxLong Seek(MxLong, SEEK_SET);
 	MxU16 SetBuffer(char*, MxLong, MxLong);
 	MxU16 Flush(MxU16);
 	MxU16 Advance(MxU16);

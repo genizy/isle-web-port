@@ -1,9 +1,11 @@
 #ifndef ISLEDEBUG_H
 #define ISLEDEBUG_H
 
-#if defined(ISLE_DEBUG)
+#include <stdbool.h> // for bool
 
 typedef union SDL_Event SDL_Event;
+
+#ifdef ISLE_DEBUG
 
 extern bool IsleDebug_Enabled();
 
@@ -25,34 +27,18 @@ extern void IsleDebug_ResetStepMode();
 
 #else
 
-#define IsleDebug_Enabled() (false)
+// Provide empty inline implementations when ISLE_DEBUG is not defined
 
-#define IsleDebug_SetEnabled(V)                                                                                        \
-	do {                                                                                                               \
-	} while (0)
-
-#define IsleDebug_Init()                                                                                               \
-	do {                                                                                                               \
-	} while (0)
-
-#define IsleDebug_Event(EVENT) (false)
-
-#define IsleDebug_Render()                                                                                             \
-	do {                                                                                                               \
-	} while (0)
-
-#define IsleDebug_SetPaused(X)                                                                                         \
-	do {                                                                                                               \
-	} while (0)
-
-#define IsleDebug_Paused() (false)
-
-#define IsleDebug_StepModeEnabled() (false)
-
-#define IsleDebug_ResetStepMode()                                                                                      \
-	do {                                                                                                               \
-	} while (0)
+static inline bool IsleDebug_Enabled(void) { return false; }
+static inline void IsleDebug_SetEnabled(bool v) { (void)v; }
+static inline void IsleDebug_Init(void) { }
+static inline bool IsleDebug_Event(SDL_Event* event) { (void)event; return false; }
+static inline void IsleDebug_Render(void) { }
+static inline void IsleDebug_SetPaused(bool v) { (void)v; }
+static inline bool IsleDebug_Paused(void) { return false; }
+static inline bool IsleDebug_StepModeEnabled(void) { return false; }
+static inline void IsleDebug_ResetStepMode(void) { }
 
 #endif
 
-#endif
+#endif // ISLEDEBUG_H

@@ -19,7 +19,7 @@
 #include "mxvariabletable.h"
 #include "raceskel.h"
 
-#include <SDL3/SDL_stdinc.h>
+#include <SDL2/SDL_stdinc.h>
 #include <stdio.h>
 
 DECOMP_SIZE_ASSERT(EdgeReference, 0x08)
@@ -218,10 +218,10 @@ void LegoRaceCar::InitSoundIndices()
 {
 	// Note the (likely unintentional) order of operations: `%` is executed before `/`,
 	// so the division is performed at runtime.
-	g_playerHitStudsSoundsIndex = SDL_rand(sizeOfArray(g_playerHitStudsSounds));
-	g_studsHitPlayerSoundsIndex = SDL_rand(sizeOfArray(g_studsHitPlayerSounds));
-	g_playerHitRhodaSoundsIndex = SDL_rand(sizeOfArray(g_playerHitRhodaSounds));
-	g_rhodaHitPlayerSoundsIndex = SDL_rand(sizeOfArray(g_rhodaHitPlayerSounds));
+	g_playerHitStudsSoundsIndex = (rand() % sizeOfArray(g_playerHitStudsSounds));
+	g_studsHitPlayerSoundsIndex = (rand() % sizeOfArray(g_studsHitPlayerSounds));
+	g_playerHitRhodaSoundsIndex = (rand() % sizeOfArray(g_playerHitRhodaSounds));
+	g_rhodaHitPlayerSoundsIndex = (rand() % sizeOfArray(g_rhodaHitPlayerSounds));
 }
 
 // FUNCTION: LEGO1 0x10012e60
@@ -573,8 +573,8 @@ MxResult LegoRaceCar::VTable0x9c()
 void LegoJetski::InitSoundIndices()
 {
 	// See note in LegoRaceCar::InitSoundIndices
-	g_hitSnapSoundsIndex = SDL_rand(sizeOfArray(g_hitSnapSounds));
-	g_hitValerieSoundsIndex = SDL_rand(sizeOfArray(g_hitValerieSounds));
+	g_hitSnapSoundsIndex = (rand() % sizeOfArray(g_hitSnapSounds));
+	g_hitValerieSoundsIndex = (rand() % sizeOfArray(g_hitValerieSounds));
 }
 
 // FUNCTION: LEGO1 0x100136a0

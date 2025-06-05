@@ -8,12 +8,12 @@
 #include "mxutilities.h"
 #include "mxvideomanager.h"
 
-#include <SDL3/SDL_log.h>
+#include <SDL2/SDL_log.h>
 #include <assert.h>
 #ifdef MINIWIN
 #include "miniwin/windows.h"
 #else
-#include <windows.h>
+#include "miniwin/windows.h"
 #endif
 
 DECOMP_SIZE_ASSERT(MxDisplaySurface, 0xac);

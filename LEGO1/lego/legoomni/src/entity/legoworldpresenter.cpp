@@ -27,7 +27,8 @@
 #include "mxstl/stlcompat.h"
 #include "mxutilities.h"
 
-#include <SDL3/SDL_stdinc.h>
+#include "SDL_iostream_compat.h"
+#include <SDL2/SDL_stdinc.h>
 #include <stdio.h>
 
 DECOMP_SIZE_ASSERT(LegoWorldPresenter, 0x54)
@@ -176,7 +177,7 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 
 	SDL_IOStream* wdbFile;
 
-	if ((wdbFile = SDL_IOFromFile(wdbPath, "rb")) == NULL) {
+	if ((wdbFile = SDL_RWFromFile(wdbPath, "rb")) == NULL) {
 		sprintf(wdbPath, "%s", MxOmni::GetCD());
 
 		if (wdbPath[strlen(wdbPath) - 1] != '\\' && wdbPath[strlen(wdbPath) - 1] != '/') {
@@ -186,7 +187,7 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 		strcat(wdbPath, "lego\\data\\world.wdb");
 		MxString::MapPathToFilesystem(wdbPath);
 
-		if ((wdbFile = SDL_IOFromFile(wdbPath, "rb")) == NULL) {
+		if ((wdbFile = SDL_RWFromFile(wdbPath, "rb")) == NULL) {
 			return FAILURE;
 		}
 	}
@@ -209,12 +210,12 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 	}
 
 	if (g_wdbOffset == 0) {
-		if (SDL_ReadIO(wdbFile, &size, sizeof(MxU32)) != sizeof(MxU32)) {
+		if (SDL_RWread(wdbFile, &size, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 			return FAILURE;
 		}
 
 		buff = new MxU8[size];
-		if (SDL_ReadIO(wdbFile, buff, size) != size) {
+		if (SDL_RWread(wdbFile, buff, 1, size) != size) {
 			return FAILURE;
 		}
 
@@ -229,12 +230,12 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 
 		delete[] buff;
 
-		if (SDL_ReadIO(wdbFile, &size, sizeof(MxU32)) != sizeof(MxU32)) {
+		if (SDL_RWread(wdbFile, &size, 1, sizeof(MxU32)) != sizeof(MxU32)) {
 			return FAILURE;
 		}
 
 		buff = new MxU8[size];
-		if (SDL_ReadIO(wdbFile, buff, size) != size) {
+		if (SDL_RWread(wdbFile, buff, 1, size) != size) {
 			return FAILURE;
 		}
 
@@ -248,10 +249,10 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 
 		delete[] buff;
 
-		g_wdbOffset = SDL_TellIO(wdbFile);
+		g_wdbOffset = SDL_RWtell(wdbFile);
 	}
 	else {
-		if (SDL_SeekIO(wdbFile, g_wdbOffset, SDL_IO_SEEK_SET) != g_wdbOffset) {
+		if (SDL_RWseek(wdbFile, g_wdbOffset, RW_SEEK_SET) != g_wdbOffset) {
 			return FAILURE;
 		}
 	}
@@ -309,7 +310,7 @@ MxResult LegoWorldPresenter::LoadWorld(char* p_worldName, LegoWorld* p_world)
 	}
 
 	FreeModelDbWorlds(worlds, numWorlds);
-	SDL_CloseIO(wdbFile);
+	SDL_RWclose(wdbFile);
 	return SUCCESS;
 }
 
@@ -319,8 +320,8 @@ MxResult LegoWorldPresenter::LoadWorldPart(ModelDbPart& p_part, SDL_IOStream* p_
 	MxResult result;
 	MxU8* buff = new MxU8[p_part.m_partDataLength];
 
-	SDL_SeekIO(p_wdbFile, p_part.m_partDataOffset, SDL_IO_SEEK_SET);
-	if (SDL_ReadIO(p_wdbFile, buff, p_part.m_partDataLength) != p_part.m_partDataLength) {
+	SDL_RWseek(p_wdbFile, p_part.m_partDataOffset, RW_SEEK_SET);
+	if (SDL_RWread(p_wdbFile, buff, 1, p_part.m_partDataLength) != p_part.m_partDataLength) {
 		return FAILURE;
 	}
 
@@ -344,8 +345,8 @@ MxResult LegoWorldPresenter::LoadWorldModel(ModelDbModel& p_model, SDL_IOStream*
 {
 	MxU8* buff = new MxU8[p_model.m_modelDataLength];
 
-	SDL_SeekIO(p_wdbFile, p_model.m_modelDataOffset, SDL_IO_SEEK_SET);
-	if (SDL_ReadIO(p_wdbFile, buff, p_model.m_modelDataLength) != p_model.m_modelDataLength) {
+	SDL_RWseek(p_wdbFile, p_model.m_modelDataOffset, RW_SEEK_SET);
+	if (SDL_RWread(p_wdbFile, buff, 1, p_model.m_modelDataLength) != p_model.m_modelDataLength) {
 		return FAILURE;
 	}
 

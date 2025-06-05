@@ -3,7 +3,7 @@
 #include "d3drmrenderer.h"
 #include "ddraw_impl.h"
 
-#include <SDL3/SDL.h>
+#include <SDL2/SDL.h>
 
 DEFINE_GUID(SDL3_GPU_GUID, 0x682656F3, 0x0000, 0x0000, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01);
 
