@@ -11,3 +11,4 @@
 - I never used emscripten before so some things i do might not be the best
 - Most code was chatgpt made cuz idk cpp
 - the finished build will be on [gn-math](https://gn-math.github.io)
+- ill also probably just push changes in large chunks
